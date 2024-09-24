@@ -60,6 +60,8 @@ void setup_player(Entity *entity) {
   entity->sprite = LoadTextureFromImage(LoadImage("resources/MC.png"));
 }
 
+void setup_book(Entity *entity) { entity->arch = arch_book; }
+
 int main() {
   InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "STEVE");
   world = alloca(sizeof(World));
@@ -79,12 +81,12 @@ int main() {
 
   for (int i = 0; i < 10; i++) {
     Entity *en = entity_create();
-    setup_bookcase(en);
+    setup_book(en);
     Vector2 randCoordinates = {
         (float)GetRandomValue(0, SCREEN_WIDTH / gridSize) * gridSize,
         (float)GetRandomValue(0, SCREEN_HEIGHT / gridSize) * gridSize + 16};
     en->pos = randCoordinates;
-    en->sprite = bookbase;
+    en->sprite = book;
   }
 
   Camera2D camera = {0};
@@ -101,7 +103,7 @@ int main() {
 
     float dt = GetFrameTime();
 
-    // DrawText(TextFormat("FPS: %d", GetFPS() ), 200, 80, 20, RED);
+    DrawText(TextFormat("FPS: %d", GetFPS() ), 200, 80, 20, RED);
  
     Vector2 input = {0, 0};
 
@@ -115,6 +117,17 @@ int main() {
     if (IsKeyDown(KEY_DOWN))
       input.y += 1;
 
+    if(IsKeyReleased(KEY_B) && world->inventory[itemType_book].Count > 4){
+      Entity *en = entity_create();
+      setup_bookcase(en);
+      Vector2 randCoordinates = {
+        (float)GetRandomValue(0, SCREEN_WIDTH / gridSize) * gridSize,
+        (float)GetRandomValue(0, SCREEN_HEIGHT / gridSize) * gridSize + 16};
+      en->pos = randCoordinates;
+      en->sprite = bookbase;
+      world->inventory[itemType_book].Count -= 4;
+    }
+
     if (input.x != 0 || input.y != 0)
       input = normalize(input);
 
@@ -124,7 +137,6 @@ int main() {
     if(player->pos.x < -SCREEN_WIDTH){
       player->pos.x = -SCREEN_WIDTH;
     }
-  
     if(player->pos.x + 32 > 2 * SCREEN_WIDTH){
       player->pos.x = 2 * SCREEN_WIDTH - 32;
     }  
@@ -138,13 +150,13 @@ int main() {
     camera.target = (Vector2){player->pos.x + 20, player->pos.y + 20};
     BeginMode2D(camera);
 
-   DrawTexture(checked, -SCREEN_WIDTH, -SCREEN_HEIGHT, WHITE);
+    DrawTexture(checked, -SCREEN_WIDTH, -SCREEN_HEIGHT, WHITE);
 
     for (int i = 0; i < MAX_ENTITY_COUNT; i++) {
       Entity *existing_entity = &world->entities[i];
       if (existing_entity->is_valid) {
         switch (existing_entity->arch) {
-        case arch_bookcase:
+        case arch_book:
           bool in_range = Vector2Distance(world->entities[i].pos, player->pos) <
                           gridSize * 2;
           if (clicked && in_range) {
@@ -163,6 +175,10 @@ int main() {
             DrawTexture(book, world->entities[i].pos.x,
                         world->entities[i].pos.y, WHITE);
           }
+          break;
+        case arch_bookcase:
+          DrawTexture(bookbase, world->entities[i].pos.x,
+                        world->entities[i].pos.y, WHITE);
           break;
         case arch_player:
           DrawTexture(player->sprite, player->pos.x, player->pos.y, WHITE);
