@@ -120,9 +120,10 @@ int main() {
     if(IsKeyReleased(KEY_B) && world->inventory[itemType_book].Count > 4){
       Entity *en = entity_create();
       setup_bookcase(en);
+      Vector2 mouseWorld = GetScreenToWorld2D(mp, camera);
       Vector2 randCoordinates = {
-        (float)GetRandomValue(0, SCREEN_WIDTH / gridSize) * gridSize,
-        (float)GetRandomValue(0, SCREEN_HEIGHT / gridSize) * gridSize + 16};
+        mouseWorld.x - fmod(mouseWorld.x, gridSize),
+        mouseWorld.y - fmod(mouseWorld.y, gridSize) + 16};
       en->pos = randCoordinates;
       en->sprite = bookbase;
       world->inventory[itemType_book].Count -= 4;
